@@ -24,9 +24,9 @@ namespace Migration_1._0
                     {
                         Process_Policies_and_Agents(args[0], args[1], args[2]);
                     }
-                    else if(args[0].EndsWith(""))
+                    else if(args[0].EndsWith("precerts"))
                     {
-
+                        Process_Precerts(args[0] , args[1] , args[2]);
                     }
                 }
                 else
@@ -81,6 +81,7 @@ namespace Migration_1._0
                 }
             }
             Console.WriteLine("{0} Migrated Files From {1}", current_document, migrated_documents_total);
+            Console.WriteLine("Finish");
             Console.ReadLine();
         }
         static void Process_Policies_and_Agents(string a, string b, string c)
@@ -122,7 +123,54 @@ namespace Migration_1._0
                 }
             }
             Console.WriteLine("{0} Migrated Files From {1}", current_document, migrated_documents_total);
+            Console.WriteLine("Finish");
             Console.ReadLine();
+        }
+        static void Process_Precerts(string a , string b , string c)
+        {
+            var migrated_documentos = File.ReadAllLines(b);
+            string temp_1 = migrated_documentos[migrated_documentos.Length - 4];
+            string temp_2 = temp_1.Split(' ')[6];
+            int migrated_documents_total = Convert.ToInt32(temp_2);
+            int current_document = 0;
+
+            foreach (var item in migrated_documentos)
+            {
+                if(item.Contains("Loading file:"))
+                {
+                    string temp = item.Split(' ')[item.Split(' ').Length - 1];
+                    string File_Name = temp.Substring(1, temp.Length - 2);
+                    string File_to_Find = a + @"\" + File_Name;
+
+                    try
+                    {
+                        FileInfo file = new FileInfo(File_to_Find);
+                        if(file.Exists)
+                        {
+                            current_document++;
+                            string archivo_destino = c + @"\" + file.Name;
+                            Console.WriteLine("File to move : {0}", file.Name);
+                            file.MoveTo(archivo_destino);
+                            Console.WriteLine("The file has been moved");
+                            Console.WriteLine("{0}%", current_document * 100 / migrated_documents_total);
+                        }
+                        else
+                        {
+                            Console.WriteLine("The file : {0} doesn't exist", file.Name);
+                        }
+
+                    }
+                    catch(Exception error)
+                    {
+                        Console.WriteLine(error.Message);
+                    }
+                }
+            }
+
+            Console.WriteLine("{0} Migrated Files From {1}", current_document, migrated_documents_total);
+            Console.WriteLine("Finish");
+            Console.ReadLine();
+
         }
     }
 }
