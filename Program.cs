@@ -37,10 +37,7 @@ namespace Migration_1._0
             {
                 Console.WriteLine(error.Message);
             }
-            finally
-            {
-
-            }
+            Console.WriteLine("Finish");
             Console.ReadLine();
         }
 
@@ -91,41 +88,46 @@ namespace Migration_1._0
             int migrated_documents_total = Convert.ToInt32(migrated_documentos[migrated_documentos.Length - 2].Split(' ')[4]);
             int current_document = 0;
 
-            foreach (var item in migrated_documentos)
+            var query = (from documents in migrated_documentos
+                         where documents.Contains("successfully uploaded to DMS")
+                         select documents).ToArray();
+
+            foreach (var item in query)
             {
-                if(item.Contains("successfully uploaded to DMS"))
+                string temp = item.Split(' ')[5];
+                string File_Name = temp.Substring(1, temp.Length - 2);
+                string File_to_Find = a + @"\" + File_Name;
+
+                try
                 {
-                    string temp = item.Split(' ')[5];
-                    string File_Name = temp.Substring(1, temp.Length - 2);
-                    string File_to_Find = a + @"\" + File_Name;
-
-                    try
+                    FileInfo file = new FileInfo(File_to_Find);
+                    if (file.Exists)
                     {
-                        FileInfo file = new FileInfo(File_to_Find);
-                        if(file.Exists)
-                        {
-                            current_document++;
-                            string archivo_destino = c + @"\" + file.Name;
-                            Console.WriteLine("File to move : {0}", file.Name);
-                            file.MoveTo(archivo_destino);
-                            Console.WriteLine("The file has been moved");
-                            Console.WriteLine("{0}%", current_document * 100 / migrated_documents_total);
+                        current_document++;
+                        string archivo_destino = c + @"\" + file.Name;
+                        Console.WriteLine("File to move : {0}", file.Name);
+                        file.MoveTo(archivo_destino);
+                        Console.WriteLine("The file has been moved");
+                        Console.WriteLine("{0}%", current_document * 100 / migrated_documents_total);
 
-                        }
-                        else
-                        {
-                            Console.WriteLine("The file : {0} doesn't exist", file.Name);
-                        }
                     }
-                    catch(Exception error)
+                    else
                     {
-                        Console.WriteLine(error.Message);
+                        Console.WriteLine("The file : {0} doesn't exist", file.Name);
                     }
                 }
+                catch (Exception error)
+                {
+                    Console.WriteLine(error.Message);
+                }
             }
-            Console.WriteLine("{0} Migrated Files From {1}", current_document, migrated_documents_total);
-            Console.WriteLine("Finish");
-            Console.ReadLine();
+
+            if (query.Length > 0)
+            {
+                Console.WriteLine("{0} Migrated Files From {1}", current_document, migrated_documents_total);
+            }
+            else
+                Console.WriteLine("There is no files to migrate");
         }
         static void Process_Precerts(string a , string b , string c)
         {
@@ -175,8 +177,6 @@ namespace Migration_1._0
             if (query.Length > 0)
             {
                 Console.WriteLine("{0} Migrated Files From {1}", current_document, migrated_documents_total);
-                Console.WriteLine("Finish");
-                Console.ReadLine();
             }
             else
                 Console.WriteLine("There is no files to migrate");
